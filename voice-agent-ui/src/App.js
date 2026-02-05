@@ -20,16 +20,21 @@ function App() {
     connection
       .start()
       .then(() => console.log("SignalR Connected"))
-      .catch((err) => console.error("Connection failed: ", err));
+      .catch((err) => {
+        console.error("Connection failed: ", err);
+      console.error("Full error:", JSON.stringify(err, null, 2));
+      });
 
     // When backend sends AI text
     connection.on("ReceiveText", (text) => {
       setAiText(text);
     });
 
-    // When backend sends STT text (we'll wire this up later)
+    // When backend sends STT text 
     connection.on("ReceiveSTT", (text) => {
+      console.log("Received STT:", text);
       setSttText(text);
+      sendTextToLLM(text); // alextestOptional: auto-send to LLM
     });
   }, []);
 
@@ -57,6 +62,8 @@ function App() {
         setLastRecording(audioBlob);
 
         // Later: send audioBlob to backend STT endpoint
+        // Send audio to backend for STT 
+        sendAudioToBackend(audioBlob);
         // After STT returns transcription:
         // setSttText(transcription);
       };
@@ -85,6 +92,31 @@ function App() {
     const audio = new Audio(audioUrl);
     audio.play();
   };
+
+const sendAudioToBackend = async (audioBlob) => {
+  console.log("Sending audio to backend...");
+
+  const formData = new FormData();
+  formData.append("audio", audioBlob, "audio.webm");
+
+  try {
+    await fetch("https://localhost:7260/stt", {
+      method: "POST",
+      body: formData
+    });
+  } catch (err) {
+    console.error("Error sending audio:", err);
+  }
+};
+
+const sendTextToLLM = async (text) => {
+  await fetch("https://localhost:7260/ai", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ text })
+  });
+};
+
 
   // -----------------------------
   // UI

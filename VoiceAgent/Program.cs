@@ -12,6 +12,18 @@ builder.Services.AddControllers();
 builder.Services.Configure<WhisperSettings>(
     builder.Configuration.GetSection("Whisper"));
 
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowReact",
+        policy =>
+        {
+            policy.WithOrigins("http://localhost:3000")
+                  .AllowAnyHeader()
+                  .AllowAnyMethod()
+                  .AllowCredentials();
+        });
+});
+
 
 var app = builder.Build();
 
@@ -42,9 +54,12 @@ app.MapGet("/weatherforecast", () =>
 })
 .WithName("GetWeatherForecast");
 
-app.MapHub<VoiceHub>("/voiceHub");
+app.UseCors("AllowReact");
+
+app.MapHub<VoiceHub>("/voiceHub").RequireCors("AllowReact");
 
 app.MapControllers();
+
 
 app.Run();
 
