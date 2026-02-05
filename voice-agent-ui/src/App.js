@@ -12,6 +12,8 @@ function App() {
 
   const mediaRecorderRef = useRef(null);
   const audioChunksRef = useRef([]);
+// TTS part alextest
+const [ttsAudioUrl, setTtsAudioUrl] = useState(null);
 
   // -----------------------------
   // SignalR Setup
@@ -33,9 +35,14 @@ useEffect(() => {
   startConnection();
 
   // Handlers
-  const handleReceiveText = (text) => {
+  const handleReceiveText = (chunk) => {
     if (!isMounted) return;
-    setAiText(prev => prev + text);
+    setAiText(prev => { 
+      const updated = prev + chunk; 
+      // Simple heuristic: if the chunk ends with punctuation, speak the final text 
+      if (/[.!?]\s*$/.test(chunk)) { speak(updated); } 
+      return updated; 
+    });
   };
 
   const handleReceiveSTT = (text) => {
@@ -47,6 +54,14 @@ useEffect(() => {
 
   connection.on("ReceiveText", handleReceiveText);
   connection.on("ReceiveSTT", handleReceiveSTT);
+
+  connection.on("ReceiveTextDone", () => {
+    setAiText(current => {
+      speak(current);
+      return current;
+    });
+  });
+
 
   return () => {
     isMounted = false;
@@ -136,6 +151,35 @@ const sendTextToLLM = async (text) => {
   });
 };
 
+async function speak(text) {
+  if (!text || !text.trim()) {
+    console.warn("Skipping TTS for empty text");
+    return;
+  }
+
+  const res = await fetch("https://localhost:7260/tts", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ text })
+  });
+
+  if (!res.ok) {
+    console.warn("TTS request failed:", await res.text());
+    return;
+  }
+
+  const blob = await res.blob();
+
+  if (!blob || blob.size < 100) {
+    console.warn("Skipping invalid audio blob");
+    return;
+  }
+  console.log("alextestblob.type: " + blob.type);
+  const url = URL.createObjectURL(blob);
+  setTtsAudioUrl(url);   // <-- store it instead of playing it
+}
+
+
 
   // -----------------------------
   // UI
@@ -193,6 +237,20 @@ const sendTextToLLM = async (text) => {
           }}
         />
       </div>
+
+      <button
+          onClick={() => {
+            if (ttsAudioUrl) {
+              const audio = new Audio(ttsAudioUrl);
+              audio.play();
+            }
+          }}
+          disabled={!ttsAudioUrl}
+          style={{ marginTop: "10px" }}
+        >
+          Play TTS Audio
+        </button>
+
     </div>
   );
 }

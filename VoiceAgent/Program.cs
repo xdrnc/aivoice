@@ -31,10 +31,6 @@ if (engine == "macos")
 {
     builder.Services.AddSingleton<ITtsEngine, MacOsTtsEngine>();
 }
-else if (engine == "ollama")
-{
-    builder.Services.AddSingleton<ITtsEngine, OllamaTtsEngine>();
-}
 
 
 var app = builder.Build();

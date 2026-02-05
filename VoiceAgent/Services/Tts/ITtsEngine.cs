@@ -1,4 +1,4 @@
 public interface ITtsEngine
 {
-    Task<byte[]> GenerateAudioAsync(string text);
+    Task<(byte[] Audio, string MimeType)> GenerateAudioAsync(string text);
 }
