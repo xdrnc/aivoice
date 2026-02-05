@@ -27,7 +27,7 @@ function App() {
 
     // When backend sends AI text
     connection.on("ReceiveText", (text) => {
-      setAiText(text);
+      setAiText(prev => prev + text);
     });
 
     // When backend sends STT text 
