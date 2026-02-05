@@ -16,27 +16,46 @@ function App() {
   // -----------------------------
   // SignalR Setup
   // -----------------------------
-  useEffect(() => {
-    connection
-      .start()
-      .then(() => console.log("SignalR Connected"))
-      .catch((err) => {
-        console.error("Connection failed: ", err);
-      console.error("Full error:", JSON.stringify(err, null, 2));
-      });
+useEffect(() => {
+  if (!connection) return;
 
-    // When backend sends AI text
-    connection.on("ReceiveText", (text) => {
-      setAiText(prev => prev + text);
-    });
+  let isMounted = true;
 
-    // When backend sends STT text 
-    connection.on("ReceiveSTT", (text) => {
-      console.log("Received STT:", text);
-      setSttText(text);
-      sendTextToLLM(text); // alextestOptional: auto-send to LLM
-    });
-  }, []);
+  const startConnection = async () => {
+    try {
+      await connection.start();
+      console.log("SignalR Connected");
+    } catch (err) {
+      console.error("Connection failed:", err);
+    }
+  };
+
+  startConnection();
+
+  // Handlers
+  const handleReceiveText = (text) => {
+    if (!isMounted) return;
+    setAiText(prev => prev + text);
+  };
+
+  const handleReceiveSTT = (text) => {
+    if (!isMounted) return;
+    console.log("Received STT:", text);
+    setSttText(text);
+    sendTextToLLM(text);
+  };
+
+  connection.on("ReceiveText", handleReceiveText);
+  connection.on("ReceiveSTT", handleReceiveSTT);
+
+  return () => {
+    isMounted = false;
+    connection.off("ReceiveText", handleReceiveText);
+    connection.off("ReceiveSTT", handleReceiveSTT);
+  };
+
+}, [connection]);
+
 
   // -----------------------------
   // Microphone Recording
