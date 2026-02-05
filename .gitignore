@@ -1,0 +1,55 @@
+# -------------------------
+# .NET build artifacts
+# -------------------------
+bin/
+obj/
+
+# -------------------------
+# Node.js / React
+# -------------------------
+node_modules/
+dist/
+build/
+
+# -------------------------
+# Environment files
+# -------------------------
+.env
+.env.local
+.env.development
+.env.production
+
+# -------------------------
+# OS junk
+# -------------------------
+.DS_Store
+Thumbs.db
+
+# -------------------------
+# IDE/editor files
+# -------------------------
+.vscode/
+.idea/
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+
+# -------------------------
+# Whisper.cpp build output
+# -------------------------
+whisper.cpp/build/
+whisper.cpp/bin/
+whisper.cpp/models/*.bin
+
+# -------------------------
+# Logs
+# -------------------------
+*.log
+logs/
+
+# -------------------------
+# Temporary files
+# -------------------------
+*.tmp
+*.temp
