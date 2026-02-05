@@ -1,3 +1,6 @@
+using VoiceAgent.Config;
+
+
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
@@ -6,6 +9,9 @@ builder.Services.AddOpenApi();
 builder.Services.AddSignalR();
 
 builder.Services.AddControllers();
+builder.Services.Configure<WhisperSettings>(
+    builder.Configuration.GetSection("Whisper"));
+
 
 var app = builder.Build();
 
