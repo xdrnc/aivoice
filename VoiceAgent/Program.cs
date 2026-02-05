@@ -24,6 +24,18 @@ builder.Services.AddCors(options =>
         });
 });
 
+// alextest make the tts engine configurable
+var engine = builder.Configuration["Tts:Engine"];
+
+if (engine == "macos")
+{
+    builder.Services.AddSingleton<ITtsEngine, MacOsTtsEngine>();
+}
+else if (engine == "ollama")
+{
+    builder.Services.AddSingleton<ITtsEngine, OllamaTtsEngine>();
+}
+
 
 var app = builder.Build();
 
